@@ -46,7 +46,7 @@
         (throw (Exception. "Outdated Prepare"))))))
 
 (defn accp
-  "Receive an accept message. Does the storage save if a new value has not been
+  "Receive an accept message. Do the storage save if a new value has not been
   swapped already."
   [storage snbuf k sn]
   (let [savebuf (get @snbuf k)]

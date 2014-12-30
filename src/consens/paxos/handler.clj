@@ -1,10 +1,22 @@
 (ns consens.paxos.handler
   "Ring server running paxos"
-  (:use [ring.middleware.params])
-  (:require [ring.util.response :refer :all]))
+  (:require [ring.util.response :as res]
+            [consens.paxos.remote :as remote]
+            [clojure.string :as str]))
 
 (defn handler
   "Ring handler for paxos messages and client requests"
-  [{:keys [request-method uri params] :as request}]
-  (-> (response (str request-method " " uri " " params))
-      (content-type "text/plain")))
+  [cluster storage snbuf {:keys [request-method headers] :as request}]
+  (-> (res/response (str request-method " " headers))
+      (res/content-type "text/plain")))
+
+(defn app
+ "Initialize and return an handler closure"
+ []
+ (let [cluster (str/split (System/getenv "CLUSTER") ",")
+                storage (atom {})
+                snbuf (atom {})]
+   (do
+     (swap! storage #(%2) (remote/get-storage (first cluster)))
+     (swap! snbuf #(%2) (remote/get-snbuf (first cluster)))
+     (partial handler cluster storage snbuf))))

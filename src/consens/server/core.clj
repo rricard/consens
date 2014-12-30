@@ -2,7 +2,7 @@
   "Ring server running paxos"
   (:require [ring.util.response :refer :all]
             [ring.middleware.params :refer [wrap-params]]
-            [consens.paxos.handler :refer [handler]]))
+            [consens.paxos.handler :as paxos]))
 
 (def app
-  (wrap-params handler))
+  (wrap-params (paxos/app)))

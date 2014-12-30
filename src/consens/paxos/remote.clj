@@ -25,10 +25,18 @@
     201
     identity))
 
-(defn sn-get
+(defn get-snbuf
   "Get the seq numbers stored on an another running server"
   [host]
   (proxcall
     (http/get host {:headers {"X-SeqNum" "Sync"}})
+    200
+    json/read-str))
+
+(defn get-storage
+  "Get the storage of an another running server"
+  [host]
+  (proxcall
+    (http/get host {:headers {"X-All" "All"}})
     200
     json/read-str))
