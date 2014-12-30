@@ -41,4 +41,13 @@
         (is (= @snbuf {"k" {:sn 1 :d "d"}})))
       (testing "with a new message"
         (is (= (prep snbuf "k" "da" 2) true))
-        (is (= @snbuf {"k" {:sn 2 :d "da"}}))))))
+        (is (= @snbuf {"k" {:sn 2 :d "da"}})))))
+  (testing "consens.paxos.core/accp"
+    (let [snbuf (atom {"k" {:sn 2 :d "da"}})
+          storage (atom {"k" "d"})]
+      (testing "with an old accept"
+        (is (thrown? Exception (accp storage snbuf "k" 1)))
+        (is (= @storage {"k" "d"})))
+      (testing "with a new accept"
+        (is (= (accp storage snbuf "k" 2) true))
+        (is (= @storage {"k" "da"}))))))

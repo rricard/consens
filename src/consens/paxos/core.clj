@@ -43,4 +43,15 @@
       (swap! snbuf write-snbuf-cond k d prep-sn)
       (if (not= before (get @snbuf k))
         true
-        (throw (Exception. "Outdated Message"))))))
+        (throw (Exception. "Outdated Prepare"))))))
+
+(defn accp
+  "Receive an accept message. Does the storage save if a new value has not been
+  swapped already."
+  [storage snbuf k sn]
+  (let [savebuf (get @snbuf k)]
+    (if (= sn (:sn savebuf))
+      (do
+        (swap! storage #(assoc % k (:d savebuf)))
+        true)
+      (throw (Exception. "Outdated Accept")))))
