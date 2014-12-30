@@ -1,8 +1,7 @@
 (ns consens.paxos.handler
   "Ring server running paxos"
   (:require [ring.util.response :as res]
-            [consens.paxos.remote :as remote]
-            [clojure.string :as str]))
+            [consens.paxos.remote :as remote]))
 
 (defn handler
   "Ring handler for paxos messages and client requests"
@@ -11,12 +10,14 @@
       (res/content-type "text/plain")))
 
 (defn app
- "Initialize and return an handler closure"
- []
- (let [cluster (str/split (System/getenv "CLUSTER") ",")
-                storage (atom {})
-                snbuf (atom {})]
+ "Initialize and return an handler closure.
+ Initializes by joining the cluster or by starting empty."
+ [cluster join?]
+ (let [storage (atom {})
+       snbuf (atom {})]
    (do
-     (swap! storage #(%2) (remote/get-storage (first cluster)))
-     (swap! snbuf #(%2) (remote/get-snbuf (first cluster)))
+     (if join?
+       (do
+         (swap! storage #(%2) (remote/get-storage (first cluster)))
+         (swap! snbuf #(%2) (remote/get-snbuf (first cluster)))))
      (partial handler cluster storage snbuf))))
