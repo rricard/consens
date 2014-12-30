@@ -33,4 +33,12 @@
           (is (= (wr cluster snbuf k "d") true))))
       (testing "with a non-consenting cluster"
         (with-fake-http (gen-cluster-res cluster false k 2)
-          (is (thrown? Exception (wr cluster snbuf k "d"))))))))
+          (is (thrown? Exception (wr cluster snbuf k "d")))))))
+  (testing "consens.paxos.core/prep"
+    (let [snbuf (atom {"k" {:sn 1 :d "d"}})]
+      (testing "with an old message"
+        (is (thrown? Exception (prep snbuf "k" "da" 1)))
+        (is (= @snbuf {"k" {:sn 1 :d "d"}})))
+      (testing "with a new message"
+        (is (= (prep snbuf "k" "da" 2) true))
+        (is (= @snbuf {"k" {:sn 2 :d "da"}}))))))
