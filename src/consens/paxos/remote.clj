@@ -1,7 +1,8 @@
 (ns consens.paxos.remote
   "Remote node proxy implementation"
   (:require [consens.remote :refer [proxcall url-join]]
-            [org.httpkit.client :as http]))
+            [org.httpkit.client :as http]
+            [clojure.data.json :as json]))
 
 (defn prep
   "Remote (paxos) preparation message to an another host on a key
@@ -23,3 +24,11 @@
     (http/put (url-join host k) {:headers {"X-SeqNum" (str sn)}})
     201
     identity))
+
+(defn sn-get
+  "Get the seq numbers stored on an another running server"
+  [host]
+  (proxcall
+    (http/get host {:headers {"X-SeqNum" "Sync"}})
+    200
+    json/read-str))
