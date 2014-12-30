@@ -1,26 +1,33 @@
 (ns consens.remote
-  "Implement the protocol to access remote nodes"
-  (:require [consens.protocol :refer :all]
-            [org.httpkit.client :as http]))
+  "Access a remote consens node"
+  (:require [org.httpkit.client :as http]
+            [cemerick.url :refer (url)]))
 
 (defmacro proxcall
   "Shortcut for querying a remote node and managing the results"
   [prom expcode retfn]
-  `(let [{:keys [status# error# body#]} (deref ~prom)]
+  `(let [{status# :status error# :error body# :body} (deref ~prom)]
      (if (or (not= status# ~expcode) error#)
        (throw (Exception. (str status# " " error#)))
        (~retfn body#))))
 
-(deftype RemoteConsens
-  [uri]
-  IConsens
-  (rd [k]
-    (proxcall
-      (http/get (str uri k))
-      200
-      #(%)))
-  (wr [k d]
-    (proxcall
-      (http/put (str uri k) {:form-params {:d d}})
-      204
-      #(true))))
+(defn url-join
+  "Join urls and output a string url"
+  [& args]
+  (str (apply url args)))
+
+(defn rd
+  "Read a key in a remote node"
+  [uri k]
+  (proxcall
+    (http/get (url-join uri k))
+    200
+    identity))
+
+(defn wr
+  "Write data in a key in a remote node"
+  [uri k d]
+  (proxcall
+    (http/put (url-join uri k) {:form-params {:d d}})
+    201
+    identity))
