@@ -14,7 +14,7 @@
 
 (defn- write-snbuf-cond
   [snbuf k d prep-sn]
-  (if (> prep-sn (:sn (get snbuf k)))
+  (if (> prep-sn (:sn (get snbuf k {:sn 0})))
     (assoc snbuf k {:sn prep-sn
                     :d d})
     snbuf))
@@ -51,9 +51,14 @@
         successes (map #(try
                           (do (remote/prep % k sn d) 1)
                           (catch Exception e 0))
-                    cluster)]
+                       cluster)]
     (if (> (count successes) 0)
       (if (> (/ (reduce + 0 successes) (count successes)) 1/2)
-        (do (map #(try (remote/accp % k sn)) cluster) true)
+        (let [accepted (map #(try
+                         (remote/accp % k sn)
+                         (catch Exception e 0))
+                           cluster)]
+          (prn accepted)
+          (accp storage snbuf k sn))
         (throw (Exception. "Write Failed")))
       (accp storage snbuf k sn))))

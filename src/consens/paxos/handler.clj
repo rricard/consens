@@ -35,31 +35,34 @@
     (do
       (res/response (core/wr cluster storage snbuf uri (slurp body)))
       (-> (res/response "created") (res/status 201)))
-    (catch Exception e (gone-res))))
+    (catch Exception e (do (prn e) (gone-res)))))
 
 (defn accp-handler
   "Ring handler for accept messages."
-  [storage snbuf {:keys [uri {sn "X-SeqNum"}]}]
-  (try
-    (do
-      (res/response (core/accp storage snbuf uri sn))
-      (-> (res/response "created") (res/status 201)))
-    (catch Exception e (gone-res))))
+  [storage snbuf {:keys [uri headers] :as req}]
+  (let [sn (Long/parseLong (get headers "x-seqnum"))]
+    (try
+      (do
+        (prn storage snbuf uri sn)
+        (res/response (core/accp storage snbuf uri sn))
+        (-> (res/response "created") (res/status 201)))
+      (catch Exception e (do (prn e) (gone-res))))))
 
 (defn prep-handler
   "Ring handler for prepare messages."
-  [snbuf {:keys [uri body {sn "X-SeqNum"}]}]
-  (try
-    (do
-      (res/response (core/prep snbuf uri (slurp body) sn))
-      (-> (res/response "accepted") (res/status 202)))
-    (catch Exception e (gone-res))))
+  [snbuf {:keys [uri body headers]}]
+  (let [sn (Long/parseLong (get headers "x-seqnum"))]
+    (try
+      (do
+        (res/response (core/prep snbuf uri (slurp body) sn))
+        (-> (res/response "accepted") (res/status 202)))
+      (catch Exception e (do (prn e) (gone-res))))))
 
 (defn handler
   "Ring handler for paxos messages and client requests.
   It's just a router !"
   [cluster storage snbuf {:keys [request-method headers] :as request}]
-  (let [sn (get headers "X-SeqNum")]
+  (let [sn (get headers "x-seqnum")]
     (case request-method
       :get (if sn
              (get-snbuf-handler snbuf)

@@ -10,7 +10,7 @@
   to a (paxos) promise from the remote."
   [host k sn d]
   (proxcall
-    (http/post (url-join host k) {:headers {"X-SeqNum" (str sn)}
+    (http/post (url-join host k) {:headers {"x-seqnum" (str sn)}
                                   :body d})
     202
     identity))
@@ -21,7 +21,7 @@
   state."
   [host k sn]
   (proxcall
-    (http/put (url-join host k) {:headers {"X-SeqNum" (str sn)}})
+    (http/put (url-join host k) {:headers {"x-seqnum" (str sn)}})
     201
     identity))
 
@@ -29,7 +29,7 @@
   "Get the seq numbers stored on an another running server"
   [host]
   (proxcall
-    (http/get host {:headers {"X-SeqNum" "Sync"}})
+    (http/get host {:headers {"x-seqnum" "aync"}})
     200
     json/read-str))
 
@@ -37,6 +37,6 @@
   "Get the storage of an another running server"
   [host]
   (proxcall
-    (http/get host {:headers {"X-All" "All"}})
+    (http/get host {:headers {"x-all" "all"}})
     200
     json/read-str))
