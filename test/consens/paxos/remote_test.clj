@@ -9,7 +9,6 @@
         d (str (java.util.UUID/randomUUID))
         sn (rand-int 100)
         uri (str base "/" k)]
-    (println uri)
     (with-fake-http [{:url uri
                       :method :post
                       :headers {"X-SeqNum" (str sn)}}
