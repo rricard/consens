@@ -1,7 +1,7 @@
 (ns consens.paxos.remote-test
   (:require [clojure.test :refer :all]
             [consens.paxos.remote :refer :all]
-            [org.httpkit.fake :refer :all]
+            [org.httpkit.fake :refer [with-fake-http]]
             [clojure.data.json :as json]))
 
 (deftest remote-test
