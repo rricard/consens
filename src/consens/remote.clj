@@ -3,13 +3,13 @@
   (:require [org.httpkit.client :as http]
             [cemerick.url :refer (url)]))
 
-(defmacro proxcall
+(defn proxcall
   "Shortcut for querying a remote node and managing the results"
   [prom expcode retfn]
-  `(let [{status# :status error# :error body# :body} (deref ~prom)]
-     (if (or (not= status# ~expcode) error#)
-       (throw (Exception. (str status# " " error#)))
-       (~retfn body#))))
+  (let [{:keys [status error body]} (deref prom)]
+    (if (or (not= status expcode) error)
+      (throw (Exception. (str status " " error)))
+      (retfn body))))
 
 (defn url-join
   "Join urls and output a string url"
@@ -18,16 +18,16 @@
 
 (defn rd
   "Read a key in a remote node"
-  [uri k]
+  [host k]
   (proxcall
-    (http/get (url-join uri k))
+    (http/get (url-join host k))
     200
     identity))
 
 (defn wr
   "Write data in a key in a remote node"
-  [uri k d]
+  [host k d]
   (proxcall
-    (http/put (url-join uri k) {:form-params {:d d}})
+    (http/put (url-join host k) {:form-params {:d d}})
     201
     identity))
