@@ -1,13 +1,8 @@
 (ns consens.server.core
   "Ring server running paxos"
-  (:use [ring.middleware.params])
-  (:require [ring.util.response :refer :all]))
-
-(defn handler
-  "Ring handler for paxos messages and client requests"
-  [{:keys [request-method uri params] :as request}]
-  (-> (response (str request-method " " uri " " params))
-      (content-type "text/plain")))
+  (:require [ring.util.response :refer :all]
+            [ring.middleware.params :refer [wrap-params]]
+            [consens.paxos.handler :refer [handler]]))
 
 (def app
   (wrap-params handler))
