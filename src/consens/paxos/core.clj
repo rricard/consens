@@ -21,7 +21,7 @@
              (:sn (get @snbuf k)))
         successes (map #(try
                           (do (remote/prep % k sn d) 1)
-                          (catch Exception e (do (prn e) 0)))
+                          (catch Exception e 0))
                     cluster)]
     (if (> (/ (reduce + 0 successes) (count successes)) 1/2)
       (do (map #(try (remote/accp % k sn)) cluster) true)
