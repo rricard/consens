@@ -8,7 +8,6 @@
         k (str (java.util.UUID/randomUUID))
         d (str (java.util.UUID/randomUUID))
         uri (str base "/" k)]
-    (println uri)
     (with-fake-http [{:url uri :method :get} {:status 200 :body d}
                      {:url uri :method :put} {:status 201 :body "created"}]
       (testing "consens.remote/rd"
