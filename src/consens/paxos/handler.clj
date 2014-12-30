@@ -1,13 +1,75 @@
 (ns consens.paxos.handler
   "Ring server running paxos"
   (:require [ring.util.response :as res]
-            [consens.paxos.remote :as remote]))
+            [consens.paxos.remote :as remote]
+            [consens.paxos.core :as core]
+            [clojure.data.json :as json]))
+
+(defn- gone-res [] (-> (res/response "gone") (res/status 410)))
+
+(defn get-storage-handler
+  "Ring handler for get storage requests"
+  [storage]
+  (-> (res/content-type "application/json")
+      (res/response (json/write-str storage))))
+
+(defn get-snbuf-handler
+  "Ring handler for get snbuf requests"
+  [snbuf]
+  (-> (res/response
+        (json/write-str
+          (reduce #(assoc %1 %2 {:sn (:sn (get snbuf %2))})
+                  {}
+                  (keys snbuf))))
+      (res/content-type "application/json")))
+
+(defn rd-handler
+  "Ring handler for reading a key"
+  [storage {:keys [uri]}]
+  (res/response (core/rd storage uri)))
+
+(defn wr-handler
+  "Ring handler for intending to write a key"
+  [cluster storage snbuf {:keys [uri body]}]
+  (try
+    (do
+      (res/response (core/wr cluster storage snbuf uri (slurp body)))
+      (-> (res/response "created") (res/status 201)))
+    (catch Exception e (gone-res))))
+
+(defn accp-handler
+  "Ring handler for accept messages."
+  [storage snbuf {:keys [uri {sn "X-SeqNum"}]}]
+  (try
+    (do
+      (res/response (core/accp storage snbuf uri sn))
+      (-> (res/response "created") (res/status 201)))
+    (catch Exception e (gone-res))))
+
+(defn prep-handler
+  "Ring handler for prepare messages."
+  [snbuf {:keys [uri body {sn "X-SeqNum"}]}]
+  (try
+    (do
+      (res/response (core/prep snbuf uri (slurp body) sn))
+      (-> (res/response "accepted") (res/status 202)))
+    (catch Exception e (gone-res))))
 
 (defn handler
-  "Ring handler for paxos messages and client requests"
+  "Ring handler for paxos messages and client requests.
+  It's just a router !"
   [cluster storage snbuf {:keys [request-method headers] :as request}]
-  (-> (res/response (str request-method " " headers))
-      (res/content-type "text/plain")))
+  (let [sn (get headers "X-SeqNum")]
+    (case request-method
+      :get (if sn
+             (get-snbuf-handler snbuf)
+             (if (get headers "X-All")
+               (get-storage-handler storage)
+               (rd-handler storage request)))
+      :put (if sn
+             (accp-handler storage snbuf request)
+             (wr-handler cluster storage snbuf request))
+      :post (prep-handler snbuf request))))
 
 (defn app
   "Initialize and return an handler closure.

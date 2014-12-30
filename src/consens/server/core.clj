@@ -4,6 +4,9 @@
             [consens.paxos.handler :as paxos]))
 
 (def app
-  (let [cluster (str/split (or (System/getenv "CLUSTER") "") #",")
+  (let [cluster-str (System/getenv "CLUSTER")
+        cluster (if cluster-str
+                  (str/split cluster-str #",")
+                  [])
         join?   (or (System/getenv "JOIN") false)]
     (paxos/app cluster join?)))
