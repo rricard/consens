@@ -29,7 +29,7 @@
   "Get the seq numbers stored on an another running server"
   [host]
   (proxcall
-    (http/get host {:headers {"x-seqnum" "aync"}})
+    (http/get host {:headers {"x-seqnum" "sync"}})
     200
     json/read-str))
 

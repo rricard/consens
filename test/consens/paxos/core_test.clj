@@ -11,7 +11,7 @@
   [cluster consent k sn]
   (reduce #(conj %1 {:url (str %2 "/" k)
               :method :post
-              :headers {"X-SeqNum" (str sn)}}
+              :headers {"x-seqnum" (str sn)}}
              (if consent
                {:status 202 :body "accepted"}
                {:status 409 :body "conflict"}))
@@ -27,10 +27,11 @@
   (testing "consens.paxos.core/wr"
     (let [cluster (gen-cluster 2)
           snbuf (atom {})
+          storage (atom {"k" "d"})
           k (str (java.util.UUID/randomUUID))]
       (testing "with a consenting cluster"
         (with-fake-http (gen-cluster-res cluster true k 1)
-          (is (= (wr cluster snbuf k "d") true))))
+          (is (= (wr cluster storage snbuf k "d") true))))
       (testing "with a non-consenting cluster"
         (with-fake-http (gen-cluster-res cluster false k 2)
           (is (thrown? Exception (wr cluster snbuf k "d")))))))

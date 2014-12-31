@@ -14,19 +14,19 @@
         storage {"/key" "d"}]
     (with-fake-http [{:url uri
                       :method :post
-                      :headers {"X-SeqNum" (str sn)}}
+                      :headers {"x-seqnum" (str sn)}}
                      {:status 202 :body "accepted"}
                      {:url uri
                       :method :put
-                      :headers {"X-SeqNum" (str sn)}}
+                      :headers {"x-seqnum" (str sn)}}
                      {:status 201 :body "created"}
                      {:url base
                       :method :get
-                      :headers {"X-SeqNum" "Sync"}}
+                      :headers {"x-seqnum" "sync"}}
                      {:status 200 :body (json/write-str snbuf)}
                      {:url base
                       :method :get
-                      :headers {"X-All" "All"}}
+                      :headers {"x-all" "all"}}
                      {:status 200 :body (json/write-str storage)}]
       (testing "consens.paxos.remote/prep"
         (is (= (prep base k sn d) "accepted")))

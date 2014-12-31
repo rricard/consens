@@ -48,17 +48,15 @@
   (let [sn (do
              (swap! snbuf write-snbuf-and-inc k d)
              (:sn (get @snbuf k)))
-        successes (map #(try
-                          (do (remote/prep % k sn d) 1)
-                          (catch Exception e 0))
-                       cluster)]
-    (if (> (count successes) 0)
-      (if (> (/ (reduce + 0 successes) (count successes)) 1/2)
-        (let [accepted (map #(try
-                         (remote/accp % k sn)
-                         (catch Exception e 0))
-                           cluster)]
-          (prn accepted)
-          (accp storage snbuf k sn))
-        (throw (Exception. "Write Failed")))
-      (accp storage snbuf k sn))))
+        feedback (conj (map #(try
+                               (do (remote/prep % k sn d) 1)
+                               (catch Exception e 0))
+                            cluster)
+                       1)]
+    (if (> (/ (reduce + 0 feedback) (count feedback)) 1/2)
+      (let [accepted (map #(try
+                             (remote/accp % k sn)
+                             (catch Exception e 0))
+                          cluster)]
+        (accp storage snbuf k sn))
+      (throw (Exception. "Write Failed")))))
