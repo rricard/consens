@@ -64,6 +64,7 @@ But that doesn't keep you from playing with it and even helping me making it a r
 - **TEST THE HANDLERS**, yeah that's bad ! The core funcs are tested but the whole system is not. I don't know how to tackle the problem right now anyway, I have to think a little bit more about it...
 - Simple, side-effect free, Client API. With futures if possible.
 - Try to integrate it with existing clojure protocols, at this point I must have finished reading JoC I think ...
+- Oh ! and ... LOAD TESTING !
 
 ## License
 
