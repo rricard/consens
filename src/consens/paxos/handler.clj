@@ -10,17 +10,13 @@
 (defn get-storage-handler
   "Ring handler for get storage requests"
   [storage]
-  (-> (res/content-type "application/json")
-      (res/response (json/write-str storage))))
+  (-> (res/response (json/write-str @storage))
+      (res/content-type "application/json")))
 
 (defn get-snbuf-handler
   "Ring handler for get snbuf requests"
   [snbuf]
-  (-> (res/response
-        (json/write-str
-          (reduce #(assoc %1 %2 {:sn (:sn (get snbuf %2))})
-                  {}
-                  (keys snbuf))))
+  (-> (res/response (json/write-str @snbuf))
       (res/content-type "application/json")))
 
 (defn rd-handler
@@ -66,7 +62,7 @@
     (case request-method
       :get (if sn
              (get-snbuf-handler snbuf)
-             (if (get headers "X-All")
+             (if (get headers "x-all")
                (get-storage-handler storage)
                (rd-handler storage request)))
       :put (if sn
@@ -83,6 +79,6 @@
     (do
       (if join?
         (do
-          (swap! storage #(%2) (remote/get-storage (first cluster)))
-          (swap! snbuf #(%2) (remote/get-snbuf (first cluster)))))
+          (swap! storage #(identity %2) (remote/get-storage (first cluster)))
+          (swap! snbuf #(identity %2) (remote/get-snbuf (first cluster)))))
       (partial handler cluster storage snbuf))))

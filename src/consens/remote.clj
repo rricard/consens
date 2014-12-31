@@ -1,7 +1,8 @@
 (ns consens.remote
   "Access a remote consens node"
   (:require [org.httpkit.client :as http]
-            [cemerick.url :refer (url)]))
+            [cemerick.url :refer (url)]
+            [clojure.java.io :as io]))
 
 (defn proxcall
   "Shortcut for querying a remote node and managing the results"
@@ -9,7 +10,9 @@
   (let [{:keys [status error body]} (deref prom)]
     (if (or (not= status expcode) error)
       (throw (Exception. (str status " " error)))
-      (retfn body))))
+      (if (= (type body) java.lang.String)
+        (retfn body)
+        (slurp body)))))
 
 (defn url-join
   "Join urls and output a string url"
