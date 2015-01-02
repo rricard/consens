@@ -58,6 +58,6 @@
                              (remote/accp % k sn)
                              (catch Exception e 0))
                           cluster)]
-        (prn accepted) ; needed to evaluate the remote calls
+        (dorun accepted) ; needed to evaluate the remote calls
         (accp storage snbuf k sn))
       (throw (Exception. "Write Failed")))))

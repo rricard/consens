@@ -39,7 +39,6 @@
   (let [sn (Long/parseLong (get headers "x-seqnum"))]
     (try
       (do
-        (prn storage snbuf uri sn)
         (res/response (core/accp storage snbuf uri sn))
         (-> (res/response "created") (res/status 201)))
       (catch Exception e (do (prn e) (gone-res))))))
